@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cart {
+  idCart Int @id @default(autoincrement())
+}
+
+model Category {
+  categoryId        String       @id @db.Uuid
+  categoryName      String       @db.VarChar(255)
+  products          Product[]
+  parentCategoryId  String?      @db.Uuid
+  parentCategory    Category?    @relation("ParentCategory", fields: [parentCategoryId], references: [categoryId])
+  childCategory     Category[]   @relation("ParentCategory")
+}
+
+model Product {
+  productId         String        @id @db.Uuid
+  category          Category      @relation(fields: [categoryId], references: [categoryId])
+  categoryId        String        @db.Uuid
+  vendorCode        String        @db.VarChar(50)
+  productName       String        @db.VarChar(150)
+  description       String        @db.VarChar(10000)
+  weight            String        @db.VarChar(120)
+  size              String        @db.VarChar(120)
+  price             Int         
+  productImg        String       
+} 
+
+model Order {
+  orderId           String        @id @db.Uuid
+  clientId          String        @db.Uuid
+  client            Client        @relation(fields: [clientId], references: [clientId])
+  managerId         String        @db.Uuid
+  manager           Manager       @relation(fields: [managerId], references: [managerId])
+  deliveryDate      DateTime      @db.Date
+  summ              Int 
+}
+
+model Client {
+  clientId          String        @id @db.Uuid
+  orders            Order[] 
+  companyId         String?       @db.Uuid 
+  fullName          String        @db.VarChar(120)
+  phone             String        @db.VarChar(25)
+  email             String        @db.VarChar(100)
+  clientInCompany   ClientInCompany[]
+}
+
+model Company {
+  companyId         String        @id @db.Uuid
+  clientInCompany   ClientInCompany[]    
+}
+
+model ClientInCompany {
+  clientId          String        @db.Uuid
+  companyId         String        @db.Uuid
+  client            Client        @relation(fields: [clientId], references: [clientId])
+  company           Company       @relation(fields: [companyId], references: [companyId])
+  
+  @@id([clientId, companyId])
+}
+
+model Manager {
+  managerId         String        @id @db.Uuid
+  orders            Order[]
+  fullName          String        @db.VarChar(120)
+  phone             String        @db.VarChar(25)
+  email             String        @db.VarChar(100)
+}
